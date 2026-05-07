@@ -3,6 +3,7 @@ package datatools
 import (
 	"errors"
 	"sort"
+	"sync"
 )
 
 // ErrInputMatricesCannotBeEmpty is returned when either the query matrix (q) or
@@ -23,26 +24,30 @@ func FindMostRelevant(q, e [][]float64) ([]int, error) {
 		similarity float64
 		index      int
 	}, len(e))
-
+	var wg sync.WaitGroup
 	for i, emb := range e {
-		eNorm := Normalize(emb)
-		similarityIndices[i] = struct {
-			similarity float64
-			index      int
-		}{
-			similarity: DotProduct(qNorm, eNorm),
-			index:      i,
-		}
+		wg.Go(func() {
+			eNorm := Normalize(emb)
+			similarityIndices[i] = struct {
+				similarity float64
+				index      int
+			}{
+				similarity: DotProduct(qNorm, eNorm),
+				index:      i,
+			}
+		})
 	}
-
+	wg.Wait()
 	sort.Slice(similarityIndices, func(i, j int) bool {
 		return similarityIndices[i].similarity > similarityIndices[j].similarity
 	})
 
 	topIndices := make([]int, len(e))
 	for i, si := range similarityIndices {
-		topIndices[i] = si.index
+		wg.Go(func() {
+			topIndices[i] = si.index
+		})
 	}
-
+	wg.Wait()
 	return topIndices, nil
 }

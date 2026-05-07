@@ -3,9 +3,11 @@ package datatools
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"os"
-	"slices"
 	"testing"
+
+	"github.com/atendi9/capivara/assert"
 )
 
 func TestFindMostRelevantEmbeddings(t *testing.T) {
@@ -35,7 +37,5 @@ func TestFindMostRelevantEmbeddings(t *testing.T) {
 		t.Fatal(err)
 	}
 	expected := []int{0, 7, 9, 5, 2, 3, 8, 1, 6, 4}
-	if !slices.Equal(indexes, expected) {
-		t.Fatalf("invalid code -> result: %v expected: %v", indexes, expected)
-	}
+	assert.Equal(t, fmt.Sprint(expected), fmt.Sprint(indexes))
 }
